@@ -1,0 +1,62 @@
+
+## app.py
+```python
+import sys
+from storage import load_data, save_data
+
+USAGE = (
+    "Використання:\n"
+    "  python app.py add \"Назва звички\"\n"
+    "  python app.py list\n"
+    "  python app.py done <id>\n"
+)
+
+def cmd_add(args):
+    if not args:
+        print("Вкажіть назву звички.\n" + USAGE)
+        return
+    title = " ".join(args).strip('"').strip("'")
+    data = load_data()
+    new_id = (max([h["id"] for h in data], default=0) + 1)
+    data.append({"id": new_id, "title": title, "count": 0})
+    save_data(data)
+    print(f"Додано #{new_id}: {title}")
+
+def cmd_list(_args):
+    data = load_data()
+    if not data:
+        print("Список порожній.")
+        return
+    for h in data:
+        print(f'#{h["id"]:>2} | {h["title"]} — {h["count"]} ✅')
+
+def cmd_done(args):
+    if not args or not args[0].isdigit():
+        print("Вкажіть числовий id.\n" + USAGE)
+        return
+    hid = int(args[0])
+    data = load_data()
+    for h in data:
+        if h["id"] == hid:
+            h["count"] += 1
+            save_data(data)
+            print(f'Готово: #{hid} — {h["title"]} (тепер {h["count"]} ✅)')
+            return
+    print(f"Не знайдено звичку з id {hid}")
+
+def main():
+    if len(sys.argv) < 2:
+        print(USAGE)
+        return
+    cmd, *args = sys.argv[1:]
+    if cmd == "add":
+        cmd_add(args)
+    elif cmd == "list":
+        cmd_list(args)
+    elif cmd == "done":
+        cmd_done(args)
+    else:
+        print("Невідома команда.\n" + USAGE)
+
+if __name__ == "__main__":
+    main()
